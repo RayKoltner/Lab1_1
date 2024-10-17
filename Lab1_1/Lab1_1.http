@@ -1,0 +1,6 @@
+@Lab1_1_HostAddress = http://localhost:5191
+
+GET {{Lab1_1_HostAddress}}/dictionaries/
+Accept: application/json
+
+###
