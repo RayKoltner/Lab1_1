@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lab1_1", "Lab1_1\Lab1_1.csproj", "{6A9F239B-880C-426B-868E-7F036B227B3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lab1_1", "Lab1_1\Lab1_1.csproj", "{6A9F239B-880C-426B-868E-7F036B227B3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lab1_1.Data", "Lab1_1.Data\Lab1_1.Data.csproj", "{9CE705AC-2A65-412A-8BDF-AC8172D1FAF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lab1_1.Data", "Lab1_1.Data\Lab1_1.Data.csproj", "{9CE705AC-2A65-412A-8BDF-AC8172D1FAF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lab1_1.Share", "Lab1_1.Share\Lab1_1.Share.csproj", "{28DFCF63-CC2C-4DB0-BD4C-408307A338D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lab1_1.Share", "Lab1_1.Share\Lab1_1.Share.csproj", "{28DFCF63-CC2C-4DB0-BD4C-408307A338D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lab1_1.UI", "Lab1_1.UI\Lab1_1.UI.csproj", "{A53A6F73-A81A-4382-A193-53F8E7F640FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{28DFCF63-CC2C-4DB0-BD4C-408307A338D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28DFCF63-CC2C-4DB0-BD4C-408307A338D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28DFCF63-CC2C-4DB0-BD4C-408307A338D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A53A6F73-A81A-4382-A193-53F8E7F640FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A53A6F73-A81A-4382-A193-53F8E7F640FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A53A6F73-A81A-4382-A193-53F8E7F640FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A53A6F73-A81A-4382-A193-53F8E7F640FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

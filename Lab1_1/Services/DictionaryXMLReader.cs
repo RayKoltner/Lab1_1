@@ -2,7 +2,7 @@
 using System.Xml.Linq;
 using Lab1_1.Share.DTOs;
 
-namespace Lab1
+namespace Lab1_1.Services
 {
     internal class DictionaryXMLReader {  
         public List<DictionaryXMLDTO> ReadFromXml(MemoryStream file)

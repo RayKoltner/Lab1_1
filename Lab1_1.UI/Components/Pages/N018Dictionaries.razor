@@ -1,0 +1,145 @@
+﻿@page "/dictionaries"
+@attribute [StreamRendering]
+
+@rendermode RenderMode.InteractiveServer
+@inject IHttpClientFactory ClientFactory
+@using Lab1_1.Data.Model
+@using Lab1_1.Share.DTOs
+
+
+<PageTitle>N018 Dictionaries</PageTitle>
+
+<h1>Справочники формата N018</h1>
+
+<p>Данные:</p>
+
+@if (dictionaries == null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Код</th>
+                <th>Название</th>
+                <th>Дата начала</th>
+                <th>Дата окончания</th>
+                <th>Комментарии</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var dict in dictionaries)
+            {
+                <tr>
+                    <td>@dict.Id</td>
+                    <td>@dict.Code</td>
+                    <td>@dict.Name</td>
+                    <td>@dict.BeginDate.ToShortDateString()</td>
+                    <td>@dict.EndDate.ToShortDateString()</td>
+                    <td>@dict.Comments</td>
+                    <td>
+                        <button class="btn btn-danger" @onclick = "() => delete(dict.Id)">Удалить</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<div>
+    <p>Поле для добавления/изменения сущности</p>
+    <p>
+        ID (опционально, при нуле будет создана новая запись):<br />
+        <input @bind-value=tempDictionary.Id />
+    </p>
+    <p>
+        Код:<br />
+        <input @bind-value=tempDictionary.Code />
+    </p>
+    <p>
+        Название:<br />
+        <input @bind-value=tempDictionary.Name />
+    </p>
+    <p>
+        Дата начала:<br />
+        <input @bind-value=tempDictionary.BeginDate />
+    </p>
+    <p>
+        Дата окончания:<br />
+        <input @bind-value=tempDictionary.EndDate />
+    </p>
+    <p>
+        Комментарии:<br />
+        <input @bind-value=tempDictionary.Comments />
+    </p>
+    <p>
+        <button @onclick=send class="@(tempDictionary.Id == 0 ? "btn addButton" : "btn changeButton")">
+            @(tempDictionary.Id == 0 ? "Добавить" : "Изменить")
+        </button>
+    </p>
+</div>
+
+<InputFile accept=".xml" OnChange="LoadFile"/>
+
+@code {
+    List<N018Dictionary> dictionaries = [];
+    DictionaryDTO tempDictionary = new DictionaryDTO();
+    HttpClient httpClient = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = ClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri("http://localhost:5191/api/v1/Dictionary");
+
+        await update();
+    }
+
+    private async Task delete(int id)
+    {
+        await httpClient.DeleteAsync($"{httpClient.BaseAddress}/{id}");
+        await update();
+    }
+
+    private async Task update()
+    {
+        dictionaries = await httpClient.GetFromJsonAsync<List<N018Dictionary>>(httpClient.BaseAddress) ?? [];
+    }
+
+    private async Task send()
+    {
+        if (tempDictionary.Id == 0)
+        {
+            await httpClient.PostAsJsonAsync(httpClient.BaseAddress, convertToPost(tempDictionary));
+        }
+        else
+        {
+            await httpClient.PutAsJsonAsync(httpClient.BaseAddress, tempDictionary);
+        }
+        tempDictionary = new DictionaryDTO();
+        await update();
+    }
+
+    private static DictionaryPostDTO convertToPost(DictionaryDTO convertable)
+    {
+        DictionaryPostDTO postDTO = new DictionaryPostDTO();
+        postDTO.Name = convertable.Name;
+        postDTO.Code = convertable.Code;
+        postDTO.EndDate = convertable.EndDate;
+        postDTO.BeginDate = convertable.BeginDate;
+        postDTO.Comments = convertable.Comments;
+        return postDTO;
+    }
+
+    async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var content = new MultipartFormDataContent();
+        var fileContent = new StreamContent(file.OpenReadStream());
+        content.Add(fileContent, "file", file.Name);
+
+        await httpClient.PostAsync($"{httpClient.BaseAddress}/uploadFile", content);
+        await update();
+    }
+}

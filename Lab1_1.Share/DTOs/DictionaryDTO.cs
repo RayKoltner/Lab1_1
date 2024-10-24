@@ -15,7 +15,7 @@ namespace Lab1_1.Share.DTOs
         [Display(Name = "Наименование")]
         public string Name { get; set; } = string.Empty;
         public string Comments { get; set; } = string.Empty;
-        public DictionaryDTO() //Это должен быть конструктор? Я хз, что это (Оригинально метод звался DictionaryModel)
+        public DictionaryDTO() 
         {
             BeginDate = DateTime.MaxValue;
             EndDate = DateTime.MaxValue;

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lab1_1.Data\Lab1_1.Data.csproj" />
+    <ProjectReference Include="..\Lab1_1.Share\Lab1_1.Share.csproj" />
+    <ProjectReference Include="..\Lab1_1\Lab1_1.csproj" />
+  </ItemGroup>
+
+</Project>

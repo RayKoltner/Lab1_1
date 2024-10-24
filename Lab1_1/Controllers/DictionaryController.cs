@@ -1,10 +1,11 @@
-﻿using Lab1;
-using Lab1_1.Contracts;
+﻿using Lab1_1.Contracts;
 using Lab1_1.Data;
 using Lab1_1.Data.Model;
 using Lab1_1.Repositories;
 using Lab1_1.Share.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Lab1_1.Mappers;
+using Lab1_1.Services;
 
 namespace Lab1_1.Controllers
 {
@@ -15,10 +16,10 @@ namespace Lab1_1.Controllers
         private readonly ILogger<DictionaryController> _logger;
         private readonly IRepository<N018Dictionary> dictionaryRepo;
 
-        public DictionaryController(ILogger<DictionaryController> logger)
+        public DictionaryController(ILogger<DictionaryController> logger, IRepository<N018Dictionary> repo)
         {
             _logger = logger;
-            dictionaryRepo = new N018Repository<N018Dictionary>(new ApplicationContext());
+            dictionaryRepo = repo;
         }
 
         [HttpGet]
@@ -45,12 +46,8 @@ namespace Lab1_1.Controllers
         {
             try
             {
-                //Вот эта вся логика должна быть в репозитории, но я не смог это реализовать
-                N018Dictionary addedDict = new N018Dictionary();
-                addedDict.Name = recievedData.Name;
-                addedDict.Code = recievedData.Code;
-                addedDict.BeginDate = recievedData.BeginDate.ToUniversalTime();
-                addedDict.EndDate = recievedData.EndDate.ToUniversalTime();
+                // Теперь с маппером
+                var addedDict = DictPostDTOToN018DictMapper.Convert(recievedData);
                 dictionaryRepo.Add(addedDict);
                 dictionaryRepo.Save();
                 return Ok();
@@ -69,6 +66,8 @@ namespace Lab1_1.Controllers
                 var existing = dictionaryRepo.GetByKey(recievedData.Id);
                 if (existing == null) return NotFound();
 
+                // Это я решил оставить без маппера, поскольку здесь идёт замена части полей сущности,
+                // а не создание новой
                 existing.Name = recievedData.Name;
                 existing.Code = recievedData.Code;
                 existing.BeginDate = recievedData.BeginDate.ToUniversalTime();
@@ -85,7 +84,7 @@ namespace Lab1_1.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var existing = dictionaryRepo.GetByKey(id);
@@ -98,26 +97,37 @@ namespace Lab1_1.Controllers
         [HttpPost("uploadFile")]
         public IActionResult PostFromFile(IFormFile formFile)
         {
-            var reader = new DictionaryXMLReader();
-            MemoryStream stream = new MemoryStream();
-            formFile.CopyTo(stream);
-            stream.Position = 0;
-            List<DictionaryXMLDTO> newEntries = reader.ReadFromXml(stream);
-            foreach (var existing in dictionaryRepo.GetAll())
+            try
             {
-                dictionaryRepo.Delete(existing); //По какой-то причине не работает виртуальное удаление
+                if (formFile.ContentType != "text/xml")
+                {
+                    throw new Exception();
+                }
+                var reader = new DictionaryXMLReader();
+                MemoryStream stream = new MemoryStream();
+                formFile.CopyTo(stream);
+                stream.Position = 0;
+                List<DictionaryXMLDTO> newEntries = reader.ReadFromXml(stream);
+                if (!newEntries.Any()) //Если прислать xml, но без записей, то он распарсится и вернётся как пустой список
+                {
+                    throw new Exception();
+                }
+                foreach (var existing in dictionaryRepo.GetAll())
+                {
+                    dictionaryRepo.Delete(existing); //По какой-то причине не работает виртуальное удаление
+                }
+                foreach (var newEntry in newEntries)
+                {
+                    var addedDict = DictXMLDTOToDictN018Mapper.Convert(newEntry);
+                    dictionaryRepo.Add(addedDict);
+                }
+                dictionaryRepo.Save();
+                return Ok();
             }
-            foreach (var newEntry in newEntries)
+            catch
             {
-                N018Dictionary addedDict = new N018Dictionary();
-                addedDict.Name = newEntry.Name;
-                addedDict.Code = newEntry.Code;
-                addedDict.BeginDate = newEntry.BeginDate.ToUniversalTime();
-                addedDict.EndDate = newEntry.EndDate.ToUniversalTime();
-                dictionaryRepo.Add(addedDict);
+                return BadRequest();
             }
-            dictionaryRepo.Save();
-            return Ok();
         }
     }
 }
