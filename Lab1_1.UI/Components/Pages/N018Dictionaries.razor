@@ -3,9 +3,16 @@
 
 @rendermode RenderMode.InteractiveServer
 @inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JSRuntime
 @using Lab1_1.Data.Model
 @using Lab1_1.Share.DTOs
+@using System.IO
 
+<script>
+    function scrollToEditMenu() {
+        document.getElementById('editMenu').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
 
 <PageTitle>N018 Dictionaries</PageTitle>
 
@@ -41,6 +48,9 @@ else
                     <td>@dict.EndDate.ToShortDateString()</td>
                     <td>@dict.Comments</td>
                     <td>
+                        <button class="btn btn-primary" @onclick="() => change(dict)">Изменить</button>
+                    </td>
+                    <td>
                         <button class="btn btn-danger" @onclick = "() => delete(dict.Id)">Удалить</button>
                     </td>
                 </tr>
@@ -48,40 +58,48 @@ else
         </tbody>
     </table>
 }
-<div>
-    <p>Поле для добавления/изменения сущности</p>
-    <p>
-        ID (опционально, при нуле будет создана новая запись):<br />
-        <input @bind-value=tempDictionary.Id />
-    </p>
-    <p>
-        Код:<br />
-        <input @bind-value=tempDictionary.Code />
-    </p>
-    <p>
-        Название:<br />
-        <input @bind-value=tempDictionary.Name />
-    </p>
-    <p>
-        Дата начала:<br />
-        <input @bind-value=tempDictionary.BeginDate />
-    </p>
-    <p>
-        Дата окончания:<br />
-        <input @bind-value=tempDictionary.EndDate />
-    </p>
-    <p>
-        Комментарии:<br />
-        <input @bind-value=tempDictionary.Comments />
-    </p>
-    <p>
-        <button @onclick=send class="@(tempDictionary.Id == 0 ? "btn addButton" : "btn changeButton")">
-            @(tempDictionary.Id == 0 ? "Добавить" : "Изменить")
-        </button>
-    </p>
-</div>
+<div class="container">
+    <div class="row">
+    <div id="editMenu" class="col menu">
+        <p>Поле для добавления/изменения сущности</p>
+        <p>
+            ID (опционально, при нуле будет создана новая запись):<br />
+            <input @bind-value=tempDictionary.Id />
+        </p>
+        <p>
+            Код:<br />
+            <input @bind-value=tempDictionary.Code />
+        </p>
+        <p>
+            Название:<br />
+            <input @bind-value=tempDictionary.Name />
+        </p>
+        <p>
+            Дата начала:<br />
+            <input @bind-value=tempDictionary.BeginDate />
+        </p>
+        <p>
+            Дата окончания:<br />
+            <input @bind-value=tempDictionary.EndDate />
+        </p>
+        <p>
+            Комментарии:<br />
+            <input @bind-value=tempDictionary.Comments />
+        </p>
+        <p>
+            <button @onclick=send class="@(tempDictionary.Id == 0 ? "btn addButton" : "btn changeButton")">
+                @(tempDictionary.Id == 0 ? "Добавить" : "Изменить")
+            </button>
+            <button class="btn btn-secondary" @onclick="clearTempDict">Очистить</button>
+        </p>
+    </div>
 
-<InputFile accept=".xml" OnChange="LoadFile"/>
+    <div class="col menu">
+        <p>Загрузка файла:</p>
+        <InputFile accept=".xml" OnChange="LoadFile" />
+    </div>
+    </div>
+</div>
 
 @code {
     List<N018Dictionary> dictionaries = [];
@@ -94,6 +112,21 @@ else
         httpClient.BaseAddress = new Uri("http://localhost:5191/api/v1/Dictionary");
 
         await update();
+    }
+
+    private async void change(N018Dictionary dict)
+    {
+        tempDictionary.Id = dict.Id;
+        tempDictionary.Code = dict.Code;
+        tempDictionary.Name = dict.Name;
+        tempDictionary.BeginDate = dict.BeginDate;
+        tempDictionary.EndDate = dict.EndDate;
+        tempDictionary.Comments = dict.Comments;
+        await JSRuntime.InvokeVoidAsync("scrollToEditMenu");
+    }
+    private void clearTempDict()
+    {
+        tempDictionary = new DictionaryDTO();
     }
 
     private async Task delete(int id)
@@ -117,7 +150,7 @@ else
         {
             await httpClient.PutAsJsonAsync(httpClient.BaseAddress, tempDictionary);
         }
-        tempDictionary = new DictionaryDTO();
+        clearTempDict();
         await update();
     }
 
@@ -135,9 +168,13 @@ else
     async Task LoadFile(InputFileChangeEventArgs e)
     {
         var file = e.File;
+        MemoryStream ms = new MemoryStream();
+        await e.File.OpenReadStream().CopyToAsync(ms);
+        ms.Position = 0;
         var content = new MultipartFormDataContent();
-        var fileContent = new StreamContent(file.OpenReadStream());
-        content.Add(fileContent, "file", file.Name);
+        var fileContent = new StreamContent(ms);
+        fileContent.Headers.Add("Content-Type", "text/xml");
+        content.Add(fileContent, "formFile", file.Name);
 
         await httpClient.PostAsync($"{httpClient.BaseAddress}/uploadFile", content);
         await update();

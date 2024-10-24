@@ -8,3 +8,8 @@
 .changeButton{
     background-color: orange;
 }
+
+.menu {
+    padding: 20px;
+    border: 1px solid #ccc;
+}

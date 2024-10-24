@@ -99,8 +99,9 @@ namespace Lab1_1.Controllers
         {
             try
             {
-                if (formFile.ContentType != "text/xml")
+                if (formFile.ContentType != "text/xml" && formFile.ContentType != "application/xml")
                 {
+                    Console.WriteLine(formFile.ContentType);
                     throw new Exception();
                 }
                 var reader = new DictionaryXMLReader();
